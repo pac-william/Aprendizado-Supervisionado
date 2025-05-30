@@ -32,8 +32,20 @@ def preprocessar_dados(X, y):
     """
     Realiza o pré-processamento dos dados
     """
-    # TODO: Implementar pré-processamento
-    pass
+    # Tratar valores ausentes
+    X = X.fillna(X.median())
+    
+    # Normalizar variáveis
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    # Remover ruído (opcional: remover outliers)
+    # Aqui, vamos apenas remover linhas com valores extremos (exemplo: Z-score > 3)
+    z_scores = np.abs((X_scaled - X_scaled.mean()) / X_scaled.std())
+    X_clean = X_scaled[(z_scores < 3).all(axis=1)]
+    y_clean = y[(z_scores < 3).all(axis=1)]
+    
+    return X_clean, y_clean
 
 def criar_modelo_rna(input_dim):
     """
