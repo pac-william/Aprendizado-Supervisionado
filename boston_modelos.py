@@ -97,6 +97,46 @@ def preprocessar_dados(X, y):
     
     return X_clean, y_clean, scaler
 
+def selecionar_e_engenhar_caracteristicas(X, y):
+    """
+    Seleciona e engenha características
+    
+    Parâmetros:
+    -----------
+    X : DataFrame
+        Variáveis preditoras
+    y : Series
+        Variável alvo
+        
+    Retorna:
+    --------
+    X_selected : DataFrame
+        Dados com características selecionadas e engenhadas
+    """
+    # 1. Seleção de características baseada em correlação
+    print("\n1. Selecionando características baseadas em correlação...")
+    corr_with_target = X.corrwith(y).abs().sort_values(ascending=False)
+    print("Correlação com a variável alvo:")
+    print(corr_with_target)
+    
+    # Selecionar características com correlação > 0.1
+    selected_features = corr_with_target[corr_with_target > 0.1].index.tolist()
+    print(f"Características selecionadas: {selected_features}")
+    
+    # 2. Engenharia de características
+    print("\n2. Engenhando novas características...")
+    X_selected = X[selected_features].copy()
+    
+    # Exemplo: Criar interação entre RM e LSTAT
+    X_selected['RM_LSTAT'] = X['RM'] * X['LSTAT']
+    
+    # Exemplo: Criar interação entre NOX e DIS
+    X_selected['NOX_DIS'] = X['NOX'] * X['DIS']
+    
+    print("Novas características criadas: RM_LSTAT, NOX_DIS")
+    
+    return X_selected
+
 def criar_modelo_rna(input_dim):
     """
     Cria uma rede neural artificial usando MLPRegressor
@@ -165,10 +205,13 @@ if __name__ == "__main__":
         # Pré-processar dados
         X_clean, y_clean, scaler = preprocessar_dados(X, y)
         
+        # Selecionar e engenhar características
+        X_selected = selecionar_e_engenhar_caracteristicas(X, y)
+        
         # Atualizar relatório com resultados
         num_outliers = (X.shape[0] - X_clean.shape[0])
         porcentagem_outliers = (num_outliers / X.shape[0]) * 100
         atualizar_relatorio(num_outliers, porcentagem_outliers, X_clean.shape)
         
-        print("\nPré-processamento concluído com sucesso!")
+        print("\nPré-processamento e seleção de características concluídos com sucesso!")
         print("Relatório atualizado com os resultados.")

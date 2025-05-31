@@ -57,7 +57,23 @@
 ### Observações
 - [Será preenchido após execução com as principais correlações encontradas]
 
-## 5. Conclusões
+## 5. Seleção e Engenharia de Características
+
+### Seleção de Características
+- Utilizamos correlação com a variável alvo (MEDV) para selecionar características
+- Selecionamos características com correlação > 0.1
+- Características selecionadas: [será preenchido após execução]
+
+### Engenharia de Características
+- Criamos novas características a partir das existentes:
+  - **RM_LSTAT:** Interação entre RM (número médio de quartos) e LSTAT (status socioeconômico)
+  - **NOX_DIS:** Interação entre NOX (concentração de óxidos de nitrogênio) e DIS (distância aos centros de emprego)
+
+### Justificativa
+- A interação entre RM e LSTAT pode capturar o efeito do tamanho da casa no contexto socioeconômico
+- A interação entre NOX e DIS pode capturar o efeito da poluição na acessibilidade
+
+## 6. Conclusões
 
 ### Impacto do Pré-processamento
 - Melhoria na qualidade dos dados
