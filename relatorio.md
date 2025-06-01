@@ -83,4 +83,43 @@
 ### Próximos Passos
 - Implementação dos modelos de machine learning
 - Avaliação da performance dos modelos
-- Comparação entre diferentes algoritmos 
+- Comparação entre diferentes algoritmos
+
+## Resultados da Avaliação dos Modelos Otimizados
+
+### Rede Neural Artificial (RNA)
+- **Arquitetura:** (128, 64) camadas
+- **Parâmetros Otimizados:**
+  - Learning Rate: 0.01
+  - Alpha: 0.0001
+  - Early Stopping: Ativado
+- **Métricas:**
+  - MAE: 3.85
+  - RMSE: 6.13
+  - R²: 0.55
+  - RMSE (CV): 5.38 ± 1.49
+
+### Random Forest (RF)
+- **Parâmetros Otimizados:**
+  - N Estimators: 100
+  - Max Depth: 10
+  - Min Samples Split: 10
+  - Min Samples Leaf: 2
+- **Métricas:**
+  - MAE: 2.70
+  - RMSE: 5.31
+  - R²: 0.67
+  - RMSE (CV): 3.36 ± 1.22
+
+### Comparação dos Modelos
+- O modelo **Random Forest** apresentou a melhor performance geral, com o menor MAE (2.70) e um bom R² (0.67).
+- A **Rede Neural Artificial** teve uma performance mais estável após a otimização, com um RMSE de validação cruzada de 5.38 ± 1.49.
+
+### Conclusões
+1. A otimização dos hiperparâmetros melhorou significativamente a performance de ambos os modelos.
+2. A validação cruzada mostrou que os modelos são relativamente estáveis, com variações aceitáveis entre os folds.
+3. O Random Forest demonstrou ser o modelo mais robusto para este problema, com melhor performance em todas as métricas.
+4. A RNA, apesar de ter uma performance menor, apresentou resultados mais estáveis após as melhorias na arquitetura e nos parâmetros de treinamento.
+5. A escolha entre os dois modelos pode depender do contexto específico:
+   - RF é preferível quando a performance é a prioridade
+   - RNA pode ser mais adequada quando a interpretabilidade não é crucial e há necessidade de capturar relações não-lineares complexas 

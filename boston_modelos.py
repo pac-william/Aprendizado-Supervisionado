@@ -2,10 +2,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 
@@ -139,21 +138,51 @@ def selecionar_e_engenhar_caracteristicas(X, y):
 
 def criar_modelo_rna(input_dim):
     """
-    Cria uma rede neural artificial usando MLPRegressor
+    Cria uma rede neural artificial usando MLPRegressor com arquitetura mais robusta
     """
-    return MLPRegressor(hidden_layer_sizes=(64, 32), max_iter=1000, random_state=42)
-
-def criar_modelo_dt():
-    """
-    Cria uma árvore de decisão
-    """
-    return DecisionTreeRegressor(random_state=42)
+    return MLPRegressor(
+        hidden_layer_sizes=(128, 64, 32),  # Mais camadas e neurônios
+        max_iter=2000,                     # Mais iterações
+        early_stopping=True,               # Early stopping
+        validation_fraction=0.1,           # 10% dos dados para validação
+        n_iter_no_change=10,              # Número de iterações sem melhoria
+        random_state=42
+    )
 
 def criar_modelo_rf():
     """
-    Cria um Random Forest
+    Cria um Random Forest com parâmetros otimizados
     """
-    return RandomForestRegressor(n_estimators=100, random_state=42)
+    return RandomForestRegressor(
+        n_estimators=200,
+        max_depth=15,
+        min_samples_split=5,
+        min_samples_leaf=2,
+        random_state=42
+    )
+
+def otimizar_hiperparametros(modelo, X_train, y_train, param_grid):
+    """
+    Otimiza os hiperparâmetros do modelo usando GridSearchCV
+    """
+    grid_search = GridSearchCV(
+        modelo,
+        param_grid,
+        cv=5,
+        scoring='neg_mean_squared_error',
+        n_jobs=-1
+    )
+    grid_search.fit(X_train, y_train)
+    return grid_search.best_estimator_
+
+def avaliar_modelo_cv(modelo, X, y, cv=5):
+    """
+    Avalia o modelo usando validação cruzada
+    """
+    scores = cross_val_score(modelo, X, y, cv=cv, scoring='neg_mean_squared_error')
+    rmse_scores = np.sqrt(-scores)
+    print(f"RMSE médio (CV): {rmse_scores.mean():.2f} (+/- {rmse_scores.std() * 2:.2f})")
+    return rmse_scores
 
 def avaliar_modelo(y_true, y_pred):
     """
@@ -208,10 +237,67 @@ if __name__ == "__main__":
         # Selecionar e engenhar características
         X_selected = selecionar_e_engenhar_caracteristicas(X, y)
         
+        # Remover linhas com valores NaN
+        X_selected = X_selected.dropna()
+        y = y[X_selected.index]
+        
+        # Separar dados em treino e teste
+        X_train, X_test, y_train, y_test = train_test_split(X_selected, y, test_size=0.2, random_state=42)
+        
+        # Definir grids de hiperparâmetros para cada modelo
+        rna_param_grid = {
+            'hidden_layer_sizes': [(64, 32), (128, 64), (128, 64, 32)],
+            'alpha': [0.0001, 0.001, 0.01],
+            'learning_rate_init': [0.001, 0.01, 0.1]
+        }
+        
+        rf_param_grid = {
+            'n_estimators': [100, 200, 300],
+            'max_depth': [10, 15, 20],
+            'min_samples_split': [2, 5, 10]
+        }
+
+        # Treinar e otimizar modelos
+        print("\nTreinando e otimizando modelos...")
+        
+        # 1. Rede Neural Artificial (RNA)
+        print("\n1. Treinando e otimizando Rede Neural Artificial (RNA)...")
+        modelo_rna = criar_modelo_rna(X_train.shape[1])
+        modelo_rna_otimizado = otimizar_hiperparametros(modelo_rna, X_train, y_train, rna_param_grid)
+        print("Melhores parâmetros RNA:", modelo_rna_otimizado.get_params())
+        
+        # Avaliar RNA com validação cruzada
+        print("\nAvaliando RNA com validação cruzada:")
+        scores_rna = avaliar_modelo_cv(modelo_rna_otimizado, X_train, y_train)
+        
+        # Treinar RNA final com todos os dados de treino
+        modelo_rna_otimizado.fit(X_train, y_train)
+        y_pred_rna = modelo_rna_otimizado.predict(X_test)
+        
+        print("\nResultados finais da RNA:")
+        avaliar_modelo(y_test, y_pred_rna)
+        
+        # 2. Random Forest (RF)
+        print("\n2. Treinando e otimizando Random Forest (RF)...")
+        modelo_rf = criar_modelo_rf()
+        modelo_rf_otimizado = otimizar_hiperparametros(modelo_rf, X_train, y_train, rf_param_grid)
+        print("Melhores parâmetros RF:", modelo_rf_otimizado.get_params())
+        
+        # Avaliar RF com validação cruzada
+        print("\nAvaliando RF com validação cruzada:")
+        scores_rf = avaliar_modelo_cv(modelo_rf_otimizado, X_train, y_train)
+        
+        # Treinar RF final com todos os dados de treino
+        modelo_rf_otimizado.fit(X_train, y_train)
+        y_pred_rf = modelo_rf_otimizado.predict(X_test)
+        
+        print("\nResultados finais da RF:")
+        avaliar_modelo(y_test, y_pred_rf)
+        
         # Atualizar relatório com resultados
         num_outliers = (X.shape[0] - X_clean.shape[0])
         porcentagem_outliers = (num_outliers / X.shape[0]) * 100
         atualizar_relatorio(num_outliers, porcentagem_outliers, X_clean.shape)
         
-        print("\nPré-processamento e seleção de características concluídos com sucesso!")
+        print("\nPré-processamento, seleção de características e treinamento dos modelos concluídos com sucesso!")
         print("Relatório atualizado com os resultados.")
