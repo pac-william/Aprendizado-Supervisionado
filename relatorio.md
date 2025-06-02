@@ -123,3 +123,42 @@
 5. A escolha entre os dois modelos pode depender do contexto específico:
    - RF é preferível quando a performance é a prioridade
    - RNA pode ser mais adequada quando a interpretabilidade não é crucial e há necessidade de capturar relações não-lineares complexas 
+
+## Visualizações Gráficas
+
+### Distribuições das Variáveis
+- Criamos histogramas para todas as variáveis do dataset
+- Os gráficos foram salvos em 'distribuicoes_variaveis.png'
+- Isso nos permite entender a distribuição de cada variável e identificar possíveis assimetrias
+
+### Detecção de Outliers
+- Boxplots foram criados para todas as variáveis
+- Os gráficos foram salvos em 'boxplots_variaveis.png'
+- Isso nos ajuda a visualizar a presença de outliers em cada variável
+
+### Análise de Correlações
+- Matriz de correlação foi visualizada através de um heatmap
+- O gráfico foi salvo em 'matriz_correlacao.png'
+- Isso nos permite identificar relações lineares entre as variáveis
+
+### Avaliação das Predições
+- Gráficos de dispersão comparando valores reais e preditos
+- Gráficos salvos em 'rna_predicoes.png' e 'rf_predicoes.png'
+- Isso nos permite visualizar a qualidade das predições de cada modelo
+
+### Observações das Visualizações
+1. **Distribuições:**
+   - Algumas variáveis apresentam distribuições assimétricas
+   - Isso justifica a normalização realizada
+
+2. **Outliers:**
+   - Confirmamos a presença de outliers em várias variáveis
+   - A remoção de outliers foi importante para melhorar a qualidade dos dados
+
+3. **Correlações:**
+   - Identificamos correlações fortes entre algumas variáveis
+   - Isso nos ajudou na seleção de características
+
+4. **Predições:**
+   - Os gráficos de predição mostram que o RF tem uma melhor aderência à linha ideal
+   - A RNA apresenta mais dispersão nas predições 

@@ -222,14 +222,107 @@ def atualizar_relatorio(num_outliers, porcentagem_outliers, shape_final):
     with open('relatorio.md', 'w', encoding='utf-8') as file:
         file.write(conteudo)
 
+def visualizar_distribuicoes(df):
+    """
+    Cria visualizações das distribuições das variáveis
+    """
+    # Criar subplots para cada variável
+    n_cols = 3
+    n_rows = (len(df.columns) + n_cols - 1) // n_cols
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 4*n_rows))
+    axes = axes.flatten()
+    
+    for idx, col in enumerate(df.columns):
+        # Histograma
+        sns.histplot(data=df, x=col, ax=axes[idx], kde=True)
+        axes[idx].set_title(f'Distribuição de {col}')
+        axes[idx].set_xlabel(col)
+        axes[idx].set_ylabel('Frequência')
+    
+    # Remover subplots vazios
+    for idx in range(len(df.columns), len(axes)):
+        fig.delaxes(axes[idx])
+    
+    plt.tight_layout()
+    plt.savefig('distribuicoes_variaveis.png')
+    plt.close()
+
+def visualizar_boxplots(df):
+    """
+    Cria boxplots para detectar outliers
+    """
+    # Criar subplots para cada variável
+    n_cols = 3
+    n_rows = (len(df.columns) + n_cols - 1) // n_cols
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 4*n_rows))
+    axes = axes.flatten()
+    
+    for idx, col in enumerate(df.columns):
+        # Boxplot
+        sns.boxplot(data=df, y=col, ax=axes[idx])
+        axes[idx].set_title(f'Boxplot de {col}')
+        axes[idx].set_ylabel(col)
+    
+    # Remover subplots vazios
+    for idx in range(len(df.columns), len(axes)):
+        fig.delaxes(axes[idx])
+    
+    plt.tight_layout()
+    plt.savefig('boxplots_variaveis.png')
+    plt.close()
+
+def visualizar_correlacoes(df):
+    """
+    Cria matriz de correlação com heatmap
+    """
+    plt.figure(figsize=(12, 8))
+    corr_matrix = df.corr()
+    sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0)
+    plt.title('Matriz de Correlação')
+    plt.tight_layout()
+    plt.savefig('matriz_correlacao.png')
+    plt.close()
+
+def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
+    """
+    Cria gráficos comparando valores reais e preditos
+    """
+    # Gráfico de dispersão para RNA
+    plt.figure(figsize=(10, 5))
+    plt.scatter(y_true, y_pred_rna, alpha=0.5)
+    plt.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], 'r--', lw=2)
+    plt.xlabel('Valores Reais')
+    plt.ylabel('Valores Preditos')
+    plt.title('RNA: Valores Reais vs Preditos')
+    plt.tight_layout()
+    plt.savefig('rna_predicoes.png')
+    plt.close()
+    
+    # Gráfico de dispersão para RF
+    plt.figure(figsize=(10, 5))
+    plt.scatter(y_true, y_pred_rf, alpha=0.5)
+    plt.plot([y_true.min(), y_true.max()], [y_true.min(), y_true.max()], 'r--', lw=2)
+    plt.xlabel('Valores Reais')
+    plt.ylabel('Valores Preditos')
+    plt.title('RF: Valores Reais vs Preditos')
+    plt.tight_layout()
+    plt.savefig('rf_predicoes.png')
+    plt.close()
+
 if __name__ == "__main__":
     # Carregar dados
     df = carregar_dados()
     
     if df is not None:
+        # Visualizações exploratórias
+        print("\nCriando visualizações exploratórias...")
+        visualizar_distribuicoes(df)
+        visualizar_boxplots(df)
+        visualizar_correlacoes(df)
+        
         # Separar variáveis preditoras e alvo
-        X = df.drop('MEDV', axis=1)  # Todas as colunas exceto MEDV
-        y = df['MEDV']  # Coluna MEDV (preço das casas)
+        X = df.drop('MEDV', axis=1)
+        y = df['MEDV']
         
         # Pré-processar dados
         X_clean, y_clean, scaler = preprocessar_dados(X, y)
@@ -293,6 +386,10 @@ if __name__ == "__main__":
         
         print("\nResultados finais da RF:")
         avaliar_modelo(y_test, y_pred_rf)
+        
+        # Visualizar predições
+        print("\nCriando visualizações das predições...")
+        visualizar_predicoes(y_test, y_pred_rna, y_pred_rf)
         
         # Atualizar relatório com resultados
         num_outliers = (X.shape[0] - X_clean.shape[0])
