@@ -7,6 +7,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
+from scipy import stats
 
 # Configurações de visualização
 sns.set_palette("husl")
@@ -184,19 +185,214 @@ def avaliar_modelo_cv(modelo, X, y, cv=5):
     print(f"RMSE médio (CV): {rmse_scores.mean():.2f} (+/- {rmse_scores.std() * 2:.2f})")
     return rmse_scores
 
-def avaliar_modelo(y_true, y_pred):
+def analisar_residuos(y_true, y_pred, modelo_nome):
     """
-    Avalia o modelo usando métricas de regressão
+    Analisa os resíduos do modelo para verificar a qualidade das predições
+    
+    Parâmetros:
+    -----------
+    y_true : array
+        Valores reais
+    y_pred : array
+        Valores preditos
+    modelo_nome : str
+        Nome do modelo para identificação nos gráficos
     """
+    # Calcular resíduos
+    residuos = y_true - y_pred
+    
+    # Criar figura com subplots
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+    
+    # 1. Gráfico de dispersão dos resíduos vs valores preditos
+    axes[0, 0].scatter(y_pred, residuos, alpha=0.5)
+    axes[0, 0].axhline(y=0, color='r', linestyle='--')
+    axes[0, 0].set_xlabel('Valores Preditos')
+    axes[0, 0].set_ylabel('Resíduos')
+    axes[0, 0].set_title(f'{modelo_nome}: Resíduos vs Valores Preditos')
+    
+    # 2. Histograma dos resíduos
+    sns.histplot(residuos, kde=True, ax=axes[0, 1])
+    axes[0, 1].set_xlabel('Resíduos')
+    axes[0, 1].set_ylabel('Frequência')
+    axes[0, 1].set_title(f'{modelo_nome}: Distribuição dos Resíduos')
+    
+    # 3. QQ-plot dos resíduos
+    stats.probplot(residuos, dist="norm", plot=axes[1, 0])
+    axes[1, 0].set_title(f'{modelo_nome}: QQ-Plot dos Resíduos')
+    
+    # 4. Resíduos padronizados vs valores preditos
+    residuos_padronizados = residuos / np.std(residuos)
+    axes[1, 1].scatter(y_pred, residuos_padronizados, alpha=0.5)
+    axes[1, 1].axhline(y=0, color='r', linestyle='--')
+    axes[1, 1].axhline(y=2, color='g', linestyle='--')
+    axes[1, 1].axhline(y=-2, color='g', linestyle='--')
+    axes[1, 1].set_xlabel('Valores Preditos')
+    axes[1, 1].set_ylabel('Resíduos Padronizados')
+    axes[1, 1].set_title(f'{modelo_nome}: Resíduos Padronizados vs Valores Preditos')
+    
+    plt.tight_layout()
+    plt.savefig(f'analise_residuos_{modelo_nome.lower()}.png')
+    plt.close()
+    
+    # Análise estatística dos resíduos
+    print(f"\nAnálise de Resíduos - {modelo_nome}:")
+    print(f"Média dos resíduos: {np.mean(residuos):.4f}")
+    print(f"Desvio padrão dos resíduos: {np.std(residuos):.4f}")
+    print(f"Skewness dos resíduos: {stats.skew(residuos):.4f}")
+    print(f"Kurtosis dos resíduos: {stats.kurtosis(residuos):.4f}")
+    
+    # Teste de normalidade
+    _, p_valor = stats.normaltest(residuos)
+    print(f"Teste de normalidade (p-valor): {p_valor:.4f}")
+    
+    return residuos
+
+def analisar_importancia_features(modelo, X, modelo_nome):
+    """
+    Analisa a importância das features para modelos que suportam feature importance
+    
+    Parâmetros:
+    -----------
+    modelo : objeto do modelo
+        Modelo treinado que suporta feature_importances_
+    X : DataFrame
+        Features utilizadas no modelo
+    modelo_nome : str
+        Nome do modelo para identificação
+    """
+    if hasattr(modelo, 'feature_importances_'):
+        # Obter importância das features
+        importancia = modelo.feature_importances_
+        
+        # Criar DataFrame com as importâncias
+        df_importancia = pd.DataFrame({
+            'Feature': X.columns,
+            'Importância': importancia
+        })
+        
+        # Ordenar por importância
+        df_importancia = df_importancia.sort_values('Importância', ascending=False)
+        
+        # Plotar gráfico de barras
+        plt.figure(figsize=(12, 6))
+        sns.barplot(data=df_importancia, x='Importância', y='Feature')
+        plt.title(f'{modelo_nome}: Importância das Features')
+        plt.tight_layout()
+        plt.savefig(f'importancia_features_{modelo_nome.lower()}.png')
+        plt.close()
+        
+        # Imprimir tabela de importância
+        print(f"\nImportância das Features - {modelo_nome}:")
+        print(df_importancia.to_string(index=False))
+        
+        return df_importancia
+    else:
+        print(f"\nO modelo {modelo_nome} não suporta análise de importância de features.")
+        return None
+
+def analisar_erro_por_faixa(y_true, y_pred, modelo_nome, n_faixas=5):
+    """
+    Analisa o erro do modelo em diferentes faixas de valores
+    
+    Parâmetros:
+    -----------
+    y_true : array
+        Valores reais
+    y_pred : array
+        Valores preditos
+    modelo_nome : str
+        Nome do modelo para identificação
+    n_faixas : int
+        Número de faixas para análise
+    """
+    # Criar faixas de valores
+    faixas = pd.qcut(y_true, n_faixas, labels=[f'Faixa {i+1}' for i in range(n_faixas)])
+    
+    # Calcular métricas por faixa
+    df_erro = pd.DataFrame({
+        'Valor Real': y_true,
+        'Valor Predito': y_pred,
+        'Faixa': faixas
+    })
+    
+    # Calcular métricas por faixa
+    metricas_por_faixa = df_erro.groupby('Faixa').agg({
+        'Valor Real': ['count', 'mean', 'std'],
+        'Valor Predito': ['mean', 'std'],
+    }).round(2)
+    
+    # Calcular erro absoluto médio por faixa
+    df_erro['Erro Absoluto'] = np.abs(df_erro['Valor Real'] - df_erro['Valor Predito'])
+    mae_por_faixa = df_erro.groupby('Faixa')['Erro Absoluto'].mean().round(2)
+    
+    # Plotar gráfico de erro por faixa
+    plt.figure(figsize=(12, 6))
+    mae_por_faixa.plot(kind='bar')
+    plt.title(f'{modelo_nome}: Erro Absoluto Médio por Faixa de Valor')
+    plt.xlabel('Faixa de Valor')
+    plt.ylabel('Erro Absoluto Médio')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(f'erro_por_faixa_{modelo_nome.lower()}.png')
+    plt.close()
+    
+    # Imprimir métricas por faixa
+    print(f"\nAnálise de Erro por Faixa - {modelo_nome}:")
+    print("\nMétricas por Faixa:")
+    print(metricas_por_faixa)
+    print("\nErro Absoluto Médio por Faixa:")
+    print(mae_por_faixa)
+    
+    return metricas_por_faixa, mae_por_faixa
+
+def avaliar_modelo(y_true, y_pred, modelo, X, modelo_nome):
+    """
+    Avalia o modelo usando métricas de regressão e análises adicionais
+    
+    Parâmetros:
+    -----------
+    y_true : array
+        Valores reais
+    y_pred : array
+        Valores preditos
+    modelo : objeto do modelo
+        Modelo treinado
+    X : DataFrame
+        Features utilizadas no modelo
+    modelo_nome : str
+        Nome do modelo para identificação
+    """
+    # Métricas básicas
     mae = mean_absolute_error(y_true, y_pred)
     rmse = np.sqrt(mean_squared_error(y_true, y_pred))
     r2 = r2_score(y_true, y_pred)
     
+    print(f"\nResultados do Modelo {modelo_nome}:")
     print(f"MAE: {mae:.2f}")
     print(f"RMSE: {rmse:.2f}")
     print(f"R²: {r2:.2f}")
     
-    return mae, rmse, r2
+    # Análise de resíduos
+    residuos = analisar_residuos(y_true, y_pred, modelo_nome)
+    
+    # Análise de importância das features
+    df_importancia = analisar_importancia_features(modelo, X, modelo_nome)
+    
+    # Análise de erro por faixa
+    metricas_por_faixa, mae_por_faixa = analisar_erro_por_faixa(y_true, y_pred, modelo_nome)
+    
+    # Criar DataFrame com resultados
+    resultados = {
+        'Modelo': modelo_nome,
+        'MAE': mae,
+        'RMSE': rmse,
+        'R²': r2,
+        'Média Resíduos': np.mean(residuos),
+        'Std Resíduos': np.std(residuos)
+    }
+    
+    return resultados
 
 def atualizar_relatorio(num_outliers, porcentagem_outliers, shape_final):
     """
@@ -368,7 +564,7 @@ if __name__ == "__main__":
         y_pred_rna = modelo_rna_otimizado.predict(X_test)
         
         print("\nResultados finais da RNA:")
-        avaliar_modelo(y_test, y_pred_rna)
+        resultados_rna = avaliar_modelo(y_test, y_pred_rna, modelo_rna_otimizado, X_test, "RNA")
         
         # 2. Random Forest (RF)
         print("\n2. Treinando e otimizando Random Forest (RF)...")
@@ -385,7 +581,7 @@ if __name__ == "__main__":
         y_pred_rf = modelo_rf_otimizado.predict(X_test)
         
         print("\nResultados finais da RF:")
-        avaliar_modelo(y_test, y_pred_rf)
+        resultados_rf = avaliar_modelo(y_test, y_pred_rf, modelo_rf_otimizado, X_test, "RF")
         
         # Visualizar predições
         print("\nCriando visualizações das predições...")
@@ -395,6 +591,14 @@ if __name__ == "__main__":
         num_outliers = (X.shape[0] - X_clean.shape[0])
         porcentagem_outliers = (num_outliers / X.shape[0]) * 100
         atualizar_relatorio(num_outliers, porcentagem_outliers, X_clean.shape)
+        
+        # Criar DataFrame comparativo dos resultados
+        df_resultados = pd.DataFrame([resultados_rna, resultados_rf])
+        print("\nComparação dos Modelos:")
+        print(df_resultados.to_string(index=False))
+        
+        # Salvar resultados em CSV
+        df_resultados.to_csv('resultados_modelos.csv', index=False)
         
         print("\nPré-processamento, seleção de características e treinamento dos modelos concluídos com sucesso!")
         print("Relatório atualizado com os resultados.")

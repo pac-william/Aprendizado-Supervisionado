@@ -147,24 +147,65 @@ O dataset Boston Housing contém informações sobre diversas características d
 - RMSE: 6.13
 - R²: 0.55
 
-### 6.2 Análise Comparativa
+### 6.2 Análise Detalhada dos Resultados
+
+#### 6.2.1 Análise de Resíduos
+A análise de resíduos foi realizada para ambos os modelos, incluindo:
+- Gráfico de dispersão dos resíduos vs valores preditos
+- Histograma da distribuição dos resíduos
+- QQ-plot para verificar normalidade
+- Análise de resíduos padronizados
+
+**Random Forest:**
+- Distribuição mais simétrica dos resíduos
+- Menor variabilidade nos resíduos
+- Melhor aderência à normalidade
+
+**Rede Neural Artificial:**
+- Maior variabilidade nos resíduos
+- Possível presença de outliers
+- Distribuição menos simétrica
+
+#### 6.2.2 Importância das Features (Random Forest)
+A análise de importância das features revelou:
+- Features mais relevantes:
+  1. LSTAT (Status socioeconômico)
+  2. RM (Número médio de quartos)
+  3. NOX (Concentração de óxidos de nitrogênio)
+- Features menos relevantes:
+  1. CHAS (Proximidade ao rio Charles)
+  2. ZN (Proporção de terrenos residenciais)
+
+#### 6.2.3 Análise de Erro por Faixa de Valor
+O erro foi analisado em diferentes faixas de preço:
+- Faixas de menor valor: Erro relativo maior
+- Faixas de maior valor: Erro absoluto maior, mas relativo menor
+- Random Forest apresentou melhor performance em todas as faixas
+- RNA mostrou maior variabilidade do erro entre faixas
+
+### 6.3 Análise Comparativa
 - **Desempenho:** Random Forest apresentou melhor performance geral
 - **Interpretabilidade:** RF mais interpretável, permitindo análise de importância das características
 - **Tempo de Treinamento:** RF mais rápido e eficiente
-- **Desafios:** Diferentes trade-offs entre complexidade e performance
+- **Estabilidade:** RF apresentou resíduos mais estáveis e previsíveis
+- **Robustez:** RF demonstrou melhor performance em diferentes faixas de valor
 
-#### 6.2.1 Análise Crítica dos Resultados
+#### 6.3.1 Análise Crítica dos Resultados
 1. **Random Forest:**
    - Performance superior em todas as métricas
    - Maior estabilidade nas predições
    - Melhor interpretabilidade
    - Menor tempo de treinamento
+   - Resíduos mais bem comportados
+   - Melhor performance em todas as faixas de valor
 
 2. **Rede Neural Artificial:**
    - Performance inferior, mas ainda aceitável
    - Maior variabilidade nas predições
    - Difícil interpretação
    - Tempo de treinamento maior
+   - Resíduos menos estáveis
+   - Performance variável entre faixas de valor
 
 ## 7. Conclusões Finais
 
