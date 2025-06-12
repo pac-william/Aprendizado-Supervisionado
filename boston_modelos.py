@@ -8,9 +8,19 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from scipy import stats
+import os
 
 # Configurações de visualização
 sns.set_palette("husl")
+
+# Criar pasta para resultados
+def criar_pasta_resultados():
+    """
+    Cria a pasta 'result' se ela não existir
+    """
+    if not os.path.exists('result'):
+        os.makedirs('result')
+        print("Pasta 'result' criada com sucesso!")
 
 def carregar_dados(caminho_arquivo='HousingData.csv'):
     """
@@ -92,7 +102,7 @@ def preprocessar_dados(X, y):
     sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0)
     plt.title('Matriz de Correlação após Pré-processamento')
     plt.tight_layout()
-    plt.savefig('correlacao_pos_preprocessamento.png')
+    plt.savefig('result/correlacao_pos_preprocessamento.png')
     plt.close()
     
     return X_clean, y_clean, scaler
@@ -232,7 +242,7 @@ def analisar_residuos(y_true, y_pred, modelo_nome):
     axes[1, 1].set_title(f'{modelo_nome}: Resíduos Padronizados vs Valores Preditos')
     
     plt.tight_layout()
-    plt.savefig(f'analise_residuos_{modelo_nome.lower()}.png')
+    plt.savefig(f'result/analise_residuos_{modelo_nome.lower()}.png')
     plt.close()
     
     # Análise estatística dos resíduos
@@ -279,7 +289,7 @@ def analisar_importancia_features(modelo, X, modelo_nome):
         sns.barplot(data=df_importancia, x='Importância', y='Feature')
         plt.title(f'{modelo_nome}: Importância das Features')
         plt.tight_layout()
-        plt.savefig(f'importancia_features_{modelo_nome.lower()}.png')
+        plt.savefig(f'result/importancia_features_{modelo_nome.lower()}.png')
         plt.close()
         
         # Imprimir tabela de importância
@@ -334,7 +344,7 @@ def analisar_erro_por_faixa(y_true, y_pred, modelo_nome, n_faixas=5):
     plt.ylabel('Erro Absoluto Médio')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f'erro_por_faixa_{modelo_nome.lower()}.png')
+    plt.savefig(f'result/erro_por_faixa_{modelo_nome.lower()}.png')
     plt.close()
     
     # Imprimir métricas por faixa
@@ -440,7 +450,7 @@ def visualizar_distribuicoes(df):
         fig.delaxes(axes[idx])
     
     plt.tight_layout()
-    plt.savefig('distribuicoes_variaveis.png')
+    plt.savefig('result/distribuicoes_variaveis.png')
     plt.close()
 
 def visualizar_boxplots(df):
@@ -464,7 +474,7 @@ def visualizar_boxplots(df):
         fig.delaxes(axes[idx])
     
     plt.tight_layout()
-    plt.savefig('boxplots_variaveis.png')
+    plt.savefig('result/boxplots_variaveis.png')
     plt.close()
 
 def visualizar_correlacoes(df):
@@ -476,7 +486,7 @@ def visualizar_correlacoes(df):
     sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0)
     plt.title('Matriz de Correlação')
     plt.tight_layout()
-    plt.savefig('matriz_correlacao.png')
+    plt.savefig('result/matriz_correlacao.png')
     plt.close()
 
 def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
@@ -491,7 +501,7 @@ def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
     plt.ylabel('Valores Preditos')
     plt.title('RNA: Valores Reais vs Preditos')
     plt.tight_layout()
-    plt.savefig('rna_predicoes.png')
+    plt.savefig('result/rna_predicoes.png')
     plt.close()
     
     # Gráfico de dispersão para RF
@@ -502,10 +512,13 @@ def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
     plt.ylabel('Valores Preditos')
     plt.title('RF: Valores Reais vs Preditos')
     plt.tight_layout()
-    plt.savefig('rf_predicoes.png')
+    plt.savefig('result/rf_predicoes.png')
     plt.close()
 
 if __name__ == "__main__":
+    # Criar pasta para resultados
+    criar_pasta_resultados()
+    
     # Carregar dados
     df = carregar_dados()
     
@@ -598,7 +611,8 @@ if __name__ == "__main__":
         print(df_resultados.to_string(index=False))
         
         # Salvar resultados em CSV
-        df_resultados.to_csv('resultados_modelos.csv', index=False)
+        df_resultados.to_csv('result/resultados_modelos.csv', index=False)
         
         print("\nPré-processamento, seleção de características e treinamento dos modelos concluídos com sucesso!")
         print("Relatório atualizado com os resultados.")
+        print("Todas as visualizações foram salvas na pasta 'result'.")
