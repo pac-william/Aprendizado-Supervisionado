@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.neural_network import MLPRegressor
 from scipy import stats
 import os
+import json
 
 # Configurações de visualização
 sns.set_palette("husl")
@@ -515,6 +516,75 @@ def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
     plt.savefig('result/rf_predicoes.png')
     plt.close()
 
+def exportar_resultados_json(resultados_rna, resultados_rf, scores_rna, scores_rf, X_selected, y_test, y_pred_rna, y_pred_rf):
+    """
+    Exporta os resultados dos modelos em formato JSON
+    
+    Parâmetros:
+    -----------
+    resultados_rna : dict
+        Resultados do modelo RNA
+    resultados_rf : dict
+        Resultados do modelo RF
+    scores_rna : array
+        Scores de validação cruzada do modelo RNA
+    scores_rf : array
+        Scores de validação cruzada do modelo RF
+    X_selected : DataFrame
+        Features selecionadas
+    y_test : array
+        Valores reais de teste
+    y_pred_rna : array
+        Predições do modelo RNA
+    y_pred_rf : array
+        Predições do modelo RF
+    """
+    # Converter arrays numpy para listas para serialização JSON
+    resultados_json = {
+        "modelos": {
+            "RNA": {
+                "metricas": {
+                    "MAE": float(resultados_rna["MAE"]),
+                    "RMSE": float(resultados_rna["RMSE"]),
+                    "R2": float(resultados_rna["R²"]),
+                    "Media_Residuos": float(resultados_rna["Média Resíduos"]),
+                    "Std_Residuos": float(resultados_rna["Std Resíduos"])
+                },
+                "validacao_cruzada": {
+                    "RMSE_scores": scores_rna.tolist(),
+                    "RMSE_medio": float(scores_rna.mean()),
+                    "RMSE_std": float(scores_rna.std())
+                }
+            },
+            "RF": {
+                "metricas": {
+                    "MAE": float(resultados_rf["MAE"]),
+                    "RMSE": float(resultados_rf["RMSE"]),
+                    "R2": float(resultados_rf["R²"]),
+                    "Media_Residuos": float(resultados_rf["Média Resíduos"]),
+                    "Std_Residuos": float(resultados_rf["Std Resíduos"])
+                },
+                "validacao_cruzada": {
+                    "RMSE_scores": scores_rf.tolist(),
+                    "RMSE_medio": float(scores_rf.mean()),
+                    "RMSE_std": float(scores_rf.std())
+                }
+            }
+        },
+        "features_selecionadas": X_selected.columns.tolist(),
+        "predicoes": {
+            "valores_reais": y_test.tolist(),
+            "predicoes_RNA": y_pred_rna.tolist(),
+            "predicoes_RF": y_pred_rf.tolist()
+        }
+    }
+    
+    # Salvar resultados em arquivo JSON
+    with open('result/resultados_modelos.json', 'w', encoding='utf-8') as f:
+        json.dump(resultados_json, f, ensure_ascii=False, indent=4)
+    
+    print("Resultados exportados com sucesso para 'result/resultados_modelos.json'")
+
 if __name__ == "__main__":
     # Criar pasta para resultados
     criar_pasta_resultados()
@@ -612,6 +682,9 @@ if __name__ == "__main__":
         
         # Salvar resultados em CSV
         df_resultados.to_csv('result/resultados_modelos.csv', index=False)
+        
+        # Exportar resultados em JSON
+        exportar_resultados_json(resultados_rna, resultados_rf, scores_rna, scores_rf, X_selected, y_test, y_pred_rna, y_pred_rf)
         
         print("\nPré-processamento, seleção de características e treinamento dos modelos concluídos com sucesso!")
         print("Relatório atualizado com os resultados.")
