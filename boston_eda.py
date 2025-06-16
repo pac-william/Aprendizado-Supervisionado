@@ -50,7 +50,8 @@ def plotar_distribuicoes(df):
         fig.delaxes(axes[idx])
     
     plt.tight_layout()
-    plt.show()
+    plt.savefig('distribuicoes.png')
+    plt.close()
 
 def plotar_correlacoes(df):
     """Plota matriz de correlação com heatmap"""
@@ -58,7 +59,8 @@ def plotar_correlacoes(df):
     sns.heatmap(df.corr(), annot=True, cmap='coolwarm', center=0)
     plt.title('Matriz de Correlação')
     plt.tight_layout()
-    plt.show()
+    plt.savefig('correlacoes.png')
+    plt.close()
 
 def detectar_outliers(df):
     """Plota boxplots para detectar outliers nas variáveis"""
@@ -78,7 +80,8 @@ def detectar_outliers(df):
         fig.delaxes(axes[idx])
     
     plt.tight_layout()
-    plt.show()
+    plt.savefig('outliers.png')
+    plt.close()
 
 if __name__ == "__main__":
     """
