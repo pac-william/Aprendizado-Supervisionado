@@ -1,3 +1,8 @@
+"""
+Script para análise preditiva do dataset Boston Housing usando Redes Neurais e Random Forest.
+Realiza pré-processamento, seleção de features, treinamento e avaliação de modelos.
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -14,19 +19,14 @@ import json
 # Configurações de visualização
 sns.set_palette("husl")
 
-# Criar pasta para resultados
 def criar_pasta_resultados():
-    """
-    Cria a pasta 'result' se ela não existir
-    """
+    """Cria pasta para armazenar resultados e visualizações"""
     if not os.path.exists('result'):
         os.makedirs('result')
         print("Pasta 'result' criada com sucesso!")
 
 def carregar_dados(caminho_arquivo='HousingData.csv'):
-    """
-    Carrega o dataset Boston Housing
-    """
+    """Carrega e retorna o dataset Boston Housing"""
     try:
         df = pd.read_csv(caminho_arquivo)
         print(f"Dataset carregado com sucesso!")
@@ -38,23 +38,11 @@ def carregar_dados(caminho_arquivo='HousingData.csv'):
 
 def preprocessar_dados(X, y):
     """
-    Realiza o pré-processamento dos dados
-    
-    Parâmetros:
-    -----------
-    X : DataFrame
-        Variáveis preditoras
-    y : Series
-        Variável alvo
-        
-    Retorna:
-    --------
-    X_clean : array
-        Dados preprocessados das variáveis preditoras
-    y_clean : array
-        Dados preprocessados da variável alvo
-    scaler : StandardScaler
-        Objeto scaler para normalização
+    Realiza pré-processamento dos dados:
+    1. Tratamento de valores ausentes
+    2. Normalização das variáveis
+    3. Remoção de outliers
+    4. Análise de correlações
     """
     # 1. Tratar valores ausentes
     print("\n1. Tratando valores ausentes...")
@@ -110,19 +98,9 @@ def preprocessar_dados(X, y):
 
 def selecionar_e_engenhar_caracteristicas(X, y):
     """
-    Seleciona e engenha características
-    
-    Parâmetros:
-    -----------
-    X : DataFrame
-        Variáveis preditoras
-    y : Series
-        Variável alvo
-        
-    Retorna:
-    --------
-    X_selected : DataFrame
-        Dados com características selecionadas e engenhadas
+    Seleciona features relevantes e cria novas features:
+    1. Seleção baseada em correlação com target
+    2. Criação de features de interação
     """
     # 1. Seleção de características baseada em correlação
     print("\n1. Selecionando características baseadas em correlação...")
@@ -149,9 +127,7 @@ def selecionar_e_engenhar_caracteristicas(X, y):
     return X_selected
 
 def criar_modelo_rna(input_dim):
-    """
-    Cria uma rede neural artificial usando MLPRegressor com arquitetura mais robusta
-    """
+    """Configura e retorna uma Rede Neural com arquitetura otimizada"""
     return MLPRegressor(
         hidden_layer_sizes=(128, 64, 32),  # Mais camadas e neurônios
         max_iter=2000,                     # Mais iterações
@@ -162,9 +138,7 @@ def criar_modelo_rna(input_dim):
     )
 
 def criar_modelo_rf():
-    """
-    Cria um Random Forest com parâmetros otimizados
-    """
+    """Configura e retorna um Random Forest com parâmetros otimizados"""
     return RandomForestRegressor(
         n_estimators=200,
         max_depth=15,
@@ -174,9 +148,7 @@ def criar_modelo_rf():
     )
 
 def otimizar_hiperparametros(modelo, X_train, y_train, param_grid):
-    """
-    Otimiza os hiperparâmetros do modelo usando GridSearchCV
-    """
+    """Otimiza hiperparâmetros do modelo usando GridSearchCV"""
     grid_search = GridSearchCV(
         modelo,
         param_grid,
@@ -188,9 +160,7 @@ def otimizar_hiperparametros(modelo, X_train, y_train, param_grid):
     return grid_search.best_estimator_
 
 def avaliar_modelo_cv(modelo, X, y, cv=5):
-    """
-    Avalia o modelo usando validação cruzada
-    """
+    """Avalia modelo usando validação cruzada e retorna scores RMSE"""
     scores = cross_val_score(modelo, X, y, cv=cv, scoring='neg_mean_squared_error')
     rmse_scores = np.sqrt(-scores)
     print(f"RMSE médio (CV): {rmse_scores.mean():.2f} (+/- {rmse_scores.std() * 2:.2f})")
@@ -198,16 +168,11 @@ def avaliar_modelo_cv(modelo, X, y, cv=5):
 
 def analisar_residuos(y_true, y_pred, modelo_nome):
     """
-    Analisa os resíduos do modelo para verificar a qualidade das predições
-    
-    Parâmetros:
-    -----------
-    y_true : array
-        Valores reais
-    y_pred : array
-        Valores preditos
-    modelo_nome : str
-        Nome do modelo para identificação nos gráficos
+    Analisa resíduos do modelo:
+    1. Gráfico de dispersão
+    2. Histograma
+    3. QQ-plot
+    4. Resíduos padronizados
     """
     # Calcular resíduos
     residuos = y_true - y_pred
@@ -260,18 +225,7 @@ def analisar_residuos(y_true, y_pred, modelo_nome):
     return residuos
 
 def analisar_importancia_features(modelo, X, modelo_nome):
-    """
-    Analisa a importância das features para modelos que suportam feature importance
-    
-    Parâmetros:
-    -----------
-    modelo : objeto do modelo
-        Modelo treinado que suporta feature_importances_
-    X : DataFrame
-        Features utilizadas no modelo
-    modelo_nome : str
-        Nome do modelo para identificação
-    """
+    """Analisa e visualiza importância das features para modelos que suportam feature_importances_"""
     if hasattr(modelo, 'feature_importances_'):
         # Obter importância das features
         importancia = modelo.feature_importances_
@@ -303,20 +257,7 @@ def analisar_importancia_features(modelo, X, modelo_nome):
         return None
 
 def analisar_erro_por_faixa(y_true, y_pred, modelo_nome, n_faixas=5):
-    """
-    Analisa o erro do modelo em diferentes faixas de valores
-    
-    Parâmetros:
-    -----------
-    y_true : array
-        Valores reais
-    y_pred : array
-        Valores preditos
-    modelo_nome : str
-        Nome do modelo para identificação
-    n_faixas : int
-        Número de faixas para análise
-    """
+    """Analisa erro do modelo em diferentes faixas de valores"""
     # Criar faixas de valores
     faixas = pd.qcut(y_true, n_faixas, labels=[f'Faixa {i+1}' for i in range(n_faixas)])
     
@@ -359,20 +300,11 @@ def analisar_erro_por_faixa(y_true, y_pred, modelo_nome, n_faixas=5):
 
 def avaliar_modelo(y_true, y_pred, modelo, X, modelo_nome):
     """
-    Avalia o modelo usando métricas de regressão e análises adicionais
-    
-    Parâmetros:
-    -----------
-    y_true : array
-        Valores reais
-    y_pred : array
-        Valores preditos
-    modelo : objeto do modelo
-        Modelo treinado
-    X : DataFrame
-        Features utilizadas no modelo
-    modelo_nome : str
-        Nome do modelo para identificação
+    Avalia modelo usando:
+    1. Métricas de regressão
+    2. Análise de resíduos
+    3. Importância das features
+    4. Erro por faixa
     """
     # Métricas básicas
     mae = mean_absolute_error(y_true, y_pred)
@@ -430,9 +362,7 @@ def atualizar_relatorio(num_outliers, porcentagem_outliers, shape_final):
         file.write(conteudo)
 
 def visualizar_distribuicoes(df):
-    """
-    Cria visualizações das distribuições das variáveis
-    """
+    """Cria visualizações das distribuições das variáveis"""
     # Criar subplots para cada variável
     n_cols = 3
     n_rows = (len(df.columns) + n_cols - 1) // n_cols
@@ -455,9 +385,7 @@ def visualizar_distribuicoes(df):
     plt.close()
 
 def visualizar_boxplots(df):
-    """
-    Cria boxplots para detectar outliers
-    """
+    """Cria boxplots para detectar outliers nas variáveis"""
     # Criar subplots para cada variável
     n_cols = 3
     n_rows = (len(df.columns) + n_cols - 1) // n_cols
@@ -479,9 +407,7 @@ def visualizar_boxplots(df):
     plt.close()
 
 def visualizar_correlacoes(df):
-    """
-    Cria matriz de correlação com heatmap
-    """
+    """Cria matriz de correlação com heatmap"""
     plt.figure(figsize=(12, 8))
     corr_matrix = df.corr()
     sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0)
@@ -491,9 +417,7 @@ def visualizar_correlacoes(df):
     plt.close()
 
 def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
-    """
-    Cria gráficos comparando valores reais e preditos
-    """
+    """Cria gráficos comparando valores reais e preditos dos modelos"""
     # Gráfico de dispersão para RNA
     plt.figure(figsize=(10, 5))
     plt.scatter(y_true, y_pred_rna, alpha=0.5)
@@ -517,28 +441,7 @@ def visualizar_predicoes(y_true, y_pred_rna, y_pred_rf):
     plt.close()
 
 def exportar_resultados_json(resultados_rna, resultados_rf, scores_rna, scores_rf, X_selected, y_test, y_pred_rna, y_pred_rf):
-    """
-    Exporta os resultados dos modelos em formato JSON
-    
-    Parâmetros:
-    -----------
-    resultados_rna : dict
-        Resultados do modelo RNA
-    resultados_rf : dict
-        Resultados do modelo RF
-    scores_rna : array
-        Scores de validação cruzada do modelo RNA
-    scores_rf : array
-        Scores de validação cruzada do modelo RF
-    X_selected : DataFrame
-        Features selecionadas
-    y_test : array
-        Valores reais de teste
-    y_pred_rna : array
-        Predições do modelo RNA
-    y_pred_rf : array
-        Predições do modelo RF
-    """
+    """Exporta resultados dos modelos em formato JSON"""
     # Converter arrays numpy para listas para serialização JSON
     resultados_json = {
         "modelos": {
@@ -586,6 +489,13 @@ def exportar_resultados_json(resultados_rna, resultados_rf, scores_rna, scores_r
     print("Resultados exportados com sucesso para 'result/resultados_modelos.json'")
 
 if __name__ == "__main__":
+    """
+    Fluxo principal do script:
+    1. Carrega e pré-processa dados
+    2. Treina e otimiza modelos (RNA e Random Forest)
+    3. Avalia e compara modelos
+    4. Gera visualizações e relatórios
+    """
     # Criar pasta para resultados
     criar_pasta_resultados()
     

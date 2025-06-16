@@ -1,3 +1,8 @@
+"""
+Script para geração de gráficos comparativos dos modelos.
+Cria visualizações comparando métricas, predições e validação cruzada.
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,17 +16,13 @@ plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 12
 
 def criar_pasta_resultado():
-    """
-    Cria a pasta 'grafico-comparacao' se ela não existir
-    """
+    """Cria pasta para armazenar gráficos comparativos"""
     if not os.path.exists('grafico-comparacao'):
         os.makedirs('grafico-comparacao')
         print("Pasta 'grafico-comparacao' criada com sucesso!")
 
 def carregar_resultados(caminho_arquivo='result/resultados_modelos.json'):
-    """
-    Carrega os resultados dos modelos
-    """
+    """Carrega resultados dos modelos do JSON ou CSV"""
     try:
         with open(caminho_arquivo, 'r') as file:
             resultados = json.load(file)
@@ -38,9 +39,7 @@ def carregar_resultados(caminho_arquivo='result/resultados_modelos.json'):
             return None
 
 def comparar_metricas(resultados):
-    """
-    Gera um gráfico comparativo das métricas dos modelos
-    """
+    """Gera gráfico comparativo das métricas (MAE, RMSE, R²)"""
     if isinstance(resultados, pd.DataFrame):
         # Se os resultados foram carregados do CSV
         df_metricas = resultados.set_index('Modelo')
@@ -85,9 +84,7 @@ def comparar_metricas(resultados):
     print("Gráfico de comparação de métricas gerado com sucesso!")
 
 def visualizar_predicoes_comparadas(resultados):
-    """
-    Gera um gráfico comparativo das predições dos modelos
-    """
+    """Gera gráfico comparativo das predições dos modelos"""
     if isinstance(resultados, pd.DataFrame):
         # Se não temos os dados de predição, não podemos gerar este gráfico
         print("Dados de predição não disponíveis no CSV. Pulando gráfico de predições comparadas.")
@@ -127,9 +124,7 @@ def visualizar_predicoes_comparadas(resultados):
     print("Gráfico de comparação de predições gerado com sucesso!")
 
 def criar_grafico_validacao_cruzada(resultados):
-    """
-    Gera um gráfico comparativo dos resultados da validação cruzada
-    """
+    """Gera gráfico comparativo dos resultados da validação cruzada"""
     if isinstance(resultados, pd.DataFrame):
         print("Dados de validação cruzada não disponíveis no CSV. Pulando gráfico de validação cruzada.")
         return
@@ -178,9 +173,7 @@ def criar_grafico_validacao_cruzada(resultados):
         print(f"Erro ao gerar gráfico de validação cruzada: {e}")
 
 def criar_grafico_importancia_features(resultados):
-    """
-    Gera um gráfico com as features mais importantes do modelo Random Forest
-    """
+    """Gera gráfico de importância das features do Random Forest"""
     if isinstance(resultados, pd.DataFrame):
         print("Dados de importância de features não disponíveis no CSV. Pulando gráfico de importância de features.")
         return
@@ -221,6 +214,12 @@ def criar_grafico_importancia_features(resultados):
         print(f"Erro ao gerar gráfico de importância de features: {e}")
 
 if __name__ == "__main__":
+    """
+    Fluxo principal do script:
+    1. Cria pasta para resultados
+    2. Carrega resultados dos modelos
+    3. Gera gráficos comparativos
+    """
     # Criar pasta para resultados
     criar_pasta_resultado()
     

@@ -1,3 +1,8 @@
+"""
+Script para geração de apresentação HTML com resultados do projeto.
+Cria uma página web interativa com visualizações e análises.
+"""
+
 import os
 import json
 import pandas as pd
@@ -6,9 +11,7 @@ import markdown
 from datetime import datetime
 
 def carregar_resultados(caminho_arquivo='result/resultados_modelos.json'):
-    """
-    Carrega os resultados dos modelos
-    """
+    """Carrega resultados dos modelos do JSON ou CSV"""
     try:
         with open(caminho_arquivo, 'r') as file:
             resultados = json.load(file)
@@ -25,9 +28,7 @@ def carregar_resultados(caminho_arquivo='result/resultados_modelos.json'):
             return None
 
 def codificar_imagem_para_html(caminho_imagem):
-    """
-    Codifica uma imagem para base64 para incluir diretamente no HTML
-    """
+    """Codifica imagem para base64 para inclusão no HTML"""
     try:
         with open(caminho_imagem, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
@@ -37,9 +38,7 @@ def codificar_imagem_para_html(caminho_imagem):
         return ""
 
 def criar_tabela_metricas(resultados):
-    """
-    Cria uma tabela HTML com as métricas dos modelos
-    """
+    """Cria tabela HTML com métricas dos modelos"""
     if isinstance(resultados, pd.DataFrame):
         # Se os resultados foram carregados do CSV
         df_metricas = resultados.copy()
@@ -73,7 +72,11 @@ def criar_tabela_metricas(resultados):
 
 def gerar_html_apresentacao(resultados):
     """
-    Gera uma apresentação em HTML com os resultados do projeto
+    Gera apresentação HTML com:
+    1. Introdução
+    2. Análise exploratória
+    3. Comparação dos modelos
+    4. Visualizações interativas
     """
     # Carregando imagens como base64
     img_comparacao_metricas = codificar_imagem_para_html('grafico-comparacao/comparacao_metricas.png')
@@ -305,6 +308,12 @@ def gerar_html_apresentacao(resultados):
         return False
 
 if __name__ == "__main__":
+    """
+    Fluxo principal do script:
+    1. Carrega resultados
+    2. Gera apresentação HTML
+    3. Salva arquivo final
+    """
     # Carregar resultados
     resultados = carregar_resultados()
     

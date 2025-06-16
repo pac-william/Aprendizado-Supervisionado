@@ -1,3 +1,8 @@
+"""
+Script para análise exploratória de dados do dataset Boston Housing.
+Realiza análises estatísticas, visualizações e detecção de outliers.
+"""
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,9 +12,7 @@ import seaborn as sns
 sns.set_palette("husl")
 
 def carregar_dados(caminho_arquivo='HousingData.csv'):
-    """
-    Carrega o dataset Boston Housing
-    """
+    """Carrega e retorna o dataset Boston Housing"""
     try:
         df = pd.read_csv(caminho_arquivo)
         print(f"Dataset carregado com sucesso!")
@@ -22,9 +25,7 @@ def carregar_dados(caminho_arquivo='HousingData.csv'):
         return None
 
 def analise_estatistica(df):
-    """
-    Realiza análise estatística básica dos dados
-    """
+    """Realiza análise estatística básica e verifica valores nulos"""
     print("\nEstatísticas descritivas:")
     print(df.describe())
     
@@ -32,9 +33,7 @@ def analise_estatistica(df):
     print(df.isnull().sum())
 
 def plotar_distribuicoes(df):
-    """
-    Plota as distribuições das variáveis
-    """
+    """Plota histogramas das distribuições das variáveis"""
     # Criando subplots para cada variável
     n_cols = 3
     n_rows = (len(df.columns) + n_cols - 1) // n_cols
@@ -54,9 +53,7 @@ def plotar_distribuicoes(df):
     plt.show()
 
 def plotar_correlacoes(df):
-    """
-    Plota a matriz de correlação
-    """
+    """Plota matriz de correlação com heatmap"""
     plt.figure(figsize=(12, 8))
     sns.heatmap(df.corr(), annot=True, cmap='coolwarm', center=0)
     plt.title('Matriz de Correlação')
@@ -64,9 +61,7 @@ def plotar_correlacoes(df):
     plt.show()
 
 def detectar_outliers(df):
-    """
-    Detecta outliers nas variáveis
-    """
+    """Plota boxplots para detectar outliers nas variáveis"""
     # Criando boxplots para cada variável
     n_cols = 3
     n_rows = (len(df.columns) + n_cols - 1) // n_cols
@@ -86,6 +81,13 @@ def detectar_outliers(df):
     plt.show()
 
 if __name__ == "__main__":
+    """
+    Fluxo principal do script:
+    1. Carrega dados
+    2. Realiza análise estatística
+    3. Gera visualizações
+    4. Detecta outliers
+    """
     # Carregando os dados
     df = carregar_dados()
     
