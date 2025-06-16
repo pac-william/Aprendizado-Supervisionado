@@ -174,56 +174,57 @@ def analisar_residuos(y_true, y_pred, modelo_nome):
     3. QQ-plot
     4. Resíduos padronizados
     """
-    # Calcular resíduos
     residuos = y_true - y_pred
-    
-    # Criar figura com subplots
-    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-    
-    # 1. Gráfico de dispersão dos resíduos vs valores preditos
-    axes[0, 0].scatter(y_pred, residuos, alpha=0.5)
-    axes[0, 0].axhline(y=0, color='r', linestyle='--')
-    axes[0, 0].set_xlabel('Valores Preditos')
-    axes[0, 0].set_ylabel('Resíduos')
-    axes[0, 0].set_title(f'{modelo_nome}: Resíduos vs Valores Preditos')
-    
-    # 2. Histograma dos resíduos
-    sns.histplot(residuos, kde=True, ax=axes[0, 1])
-    axes[0, 1].set_xlabel('Resíduos')
-    axes[0, 1].set_ylabel('Frequência')
-    axes[0, 1].set_title(f'{modelo_nome}: Distribuição dos Resíduos')
-    
-    # 3. QQ-plot dos resíduos
-    stats.probplot(residuos, dist="norm", plot=axes[1, 0])
-    axes[1, 0].set_title(f'{modelo_nome}: QQ-Plot dos Resíduos')
-    
-    # 4. Resíduos padronizados vs valores preditos
     residuos_padronizados = residuos / np.std(residuos)
-    axes[1, 1].scatter(y_pred, residuos_padronizados, alpha=0.5)
-    axes[1, 1].axhline(y=0, color='r', linestyle='--')
-    axes[1, 1].axhline(y=2, color='g', linestyle='--')
-    axes[1, 1].axhline(y=-2, color='g', linestyle='--')
-    axes[1, 1].set_xlabel('Valores Preditos')
-    axes[1, 1].set_ylabel('Resíduos Padronizados')
-    axes[1, 1].set_title(f'{modelo_nome}: Resíduos Padronizados vs Valores Preditos')
-    
+
+    fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+    # 1. Dispersão: Resíduos vs. Valores Preditos
+    ax = axes[0, 0]
+    ax.scatter(y_pred, residuos, alpha=0.5)
+    ax.axhline(0, color='r', linestyle='--')
+    ax.set(xlabel='Valores Preditos', ylabel='Resíduos',
+           title=f'{modelo_nome}: Resíduos vs Valores Preditos')
+
+    # 2. Histograma dos resíduos
+    ax = axes[0, 1]
+    sns.histplot(residuos, kde=True, ax=ax)
+    ax.set(xlabel='Resíduos', ylabel='Frequência',
+           title=f'{modelo_nome}: Distribuição dos Resíduos')
+
+    # 3. QQ-plot
+    ax = axes[1, 0]
+    stats.probplot(residuos, dist="norm", plot=ax)
+    ax.set_title(f'{modelo_nome}: QQ-Plot dos Resíduos')
+
+    # 4. Dispersão: Resíduos Padronizados vs. Valores Preditos
+    ax = axes[1, 1]
+    ax.scatter(y_pred, residuos_padronizados, alpha=0.5)
+    ax.axhline(0, color='r', linestyle='--')
+    ax.axhline(2, color='g', linestyle='--')
+    ax.axhline(-2, color='g', linestyle='--')
+    ax.set(xlabel='Valores Preditos', ylabel='Resíduos Padronizados',
+           title=f'{modelo_nome}: Resíduos Padronizados vs Valores Preditos')
+
     plt.tight_layout()
     plt.savefig(f'result/analise_residuos_{modelo_nome.lower()}.png')
     plt.close()
-    
-    # Análise estatística dos resíduos
-    print(f"\nAnálise de Resíduos - {modelo_nome}:")
-    print(f"Média dos resíduos: {np.mean(residuos):.4f}")
-    print(f"Desvio padrão dos resíduos: {np.std(residuos):.4f}")
-    print(f"Skewness dos resíduos: {stats.skew(residuos):.4f}")
-    print(f"Kurtosis dos resíduos: {stats.kurtosis(residuos):.4f}")
-    
-    # Teste de normalidade
-    _, p_valor = stats.normaltest(residuos)
-    print(f"Teste de normalidade (p-valor): {p_valor:.4f}")
-    
-    return residuos
 
+    # Estatísticas descritivas
+    media = np.mean(residuos)
+    desvio = np.std(residuos)
+    assimetria = stats.skew(residuos)
+    curtose = stats.kurtosis(residuos)
+    _, p_valor = stats.normaltest(residuos)
+
+    print(f"\nAnálise de Resíduos - {modelo_nome}:")
+    print(f"Média dos resíduos: {media:.4f}")
+    print(f"Desvio padrão dos resíduos: {desvio:.4f}")
+    print(f"Skewness dos resíduos: {assimetria:.4f}")
+    print(f"Kurtosis dos resíduos: {curtose:.4f}")
+    print(f"Teste de normalidade (p-valor): {p_valor:.4f}")
+
+    return residuos
 def analisar_importancia_features(modelo, X, modelo_nome):
     """Analisa e visualiza importância das features para modelos que suportam feature_importances_"""
     if hasattr(modelo, 'feature_importances_'):
